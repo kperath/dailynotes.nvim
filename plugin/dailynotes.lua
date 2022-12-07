@@ -1,19 +1,19 @@
 -- set up user commands
-DailyNotes = require('dailynotes')
+local dailynotes = require('dailynotes')
 
-DailyNotes.command('Daily',
-    DailyNotes.openTodaysDailyNote,
+dailynotes.command('Daily',
+    dailynotes.openTodaysNote,
     {desc='opens todays daily note'}
 )
 
-DailyNotes.command('NextDaily',
+dailynotes.command('NextDaily',
 function ()
-    DailyNotes.getNextDailyNote(1)
+    dailynotes.getNextNote(1)
 end,
 {desc='get next daily note'})
 
-DailyNotes.command('PrevDaily',
+dailynotes.command('PrevDaily',
 function ()
-    DailyNotes.getNextDailyNote(-1)
+    dailynotes.getNextNote(-1)
 end,
 {desc='get previous daily note'})

@@ -1,17 +1,18 @@
 -- module
 local M = {}
 M.command = vim.api.nvim_create_user_command
-M.dailyNotesPath = ''
+-- path to the daily notes (default is current directory)
+M.path = ''
 
 -- gets todays daily note
-function M.openTodaysDailyNote()
-    local dailyNote = os.date('%Y-%m-%d') .. ".md"
-    vim.cmd(':e ' .. M.dailyNotesPath .. dailyNote)
+function M.openTodaysNote()
+    local todayNote = os.date('%Y-%m-%d') .. ".md"
+    vim.cmd(':e ' .. M.path .. todayNote)
 end
 
 -- when on a daily note file, returns the next daily note
 -- direction is the number of days and the sign of direction if positive goes forward in time and if negative backwards in time
-function M.getNextDailyNote(direction)
+function M.getNextNote(direction)
     local fileType = vim.bo.filetype
     if fileType ~= 'vimwiki' and fileType ~= 'markdown' then
         vim.notify('Invalid daily note: not a markdown file')
@@ -40,13 +41,13 @@ function M.getNextDailyNote(direction)
     local nextDayAsTime = os.time({day = day+direction, month = month, year = year})
     local nextDay = os.date('%Y-%m-%d', nextDayAsTime)
 
-    local nextDailyNote = nextDay .. '.md'
-    vim.cmd(':e ' .. M.dailyNotesPath .. nextDailyNote)
+    local nextDayNote = nextDay .. '.md'
+    vim.cmd(':e ' .. M.path .. nextDayNote)
 end
 
 function M.setup(opts)
-    if opts.dailyNotesPath then
-        M.dailyNotesPath = opts.dailyNotesPath
+    if opts.path then
+        M.path = opts.path
     end
 end
 
