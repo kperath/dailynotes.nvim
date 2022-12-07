@@ -23,7 +23,7 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 Add `use 'kperath/dailynotes.nvim'` to your packer plugins file.
 ```lua
 require "dailynotes".setup({
-    dailyNotesPath = '<path to your daily notes>/'
+    path = '<path to your daily notes>/'
 })
 ```
 
@@ -33,12 +33,12 @@ Plug 'kperath/dailynotes.nvim'
 
 lua << EOF
 require "dailynotes".setup({
-    dailyNotesPath = '<path to your daily notes>/'
+    path = '<path to your daily notes>/'
 })
 EOF
 ```
 
-**Note:** Assuming you have a centralized place where you keep your daily notes, it's recommended to set the `dailyNotesPath` or by default your notes will be created in whatever directory you open vim.
+**Note:** Assuming you have a centralized place where you keep your daily notes, it's recommended to set the `path` or by default your notes will be created in whatever directory you open vim.
 
 ## Dev setup
 1. clone the repository
