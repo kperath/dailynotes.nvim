@@ -13,9 +13,12 @@ Other notetaking apps like Obsidian and Vscode Foam have this feature and after 
 ## Usage
 `:Daily` opens todays daily note
 
-`:NextNote` opens the next daily note (won't go past todays date)
+`:NextDaily` opens the next daily note
+  - Won't create a new file for the next day if one does not exist
+  - Won't go past todays date
 
-`:PrevNote` opens the previous daily note
+`:PrevDaily` opens the previous daily note
+  - Won't create a file if one does not exist
 
 ## Installation
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
