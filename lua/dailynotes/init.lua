@@ -7,11 +7,40 @@ M.path = ''
 M.legacy = false
 -- notifications from dailynotes by default enabled
 M.notifications = true
+-- ignores dailynotes that don't exist (instead of creating new file)
+M.ignoreempty = false
+-- won't create dailynotes beyond start point
+-- required by "ignoreempty" to provide basecase 
+M.startdate = false
+
+-- if daily note file exists
+local function fileExists(filename)
+   local f = io.open(filename, 'r')
+   if f ~= nil then
+       io.close(f)
+       return true
+   else
+       return false
+   end
+end
 
 local function notify(msg)
     if M.notifications then
         vim.notify('[dailynotes] ' .. msg)
     end
+end
+
+local function logErr(msg)
+    vim.notify('[error] ' .. msg)
+end
+
+local function isInvalidDateFormat(name)
+    -- hyphen is a special character in lua patterns so needs to be escape with %
+    local datePattern = '%d%d%d%d%-%d%d%-%d%d'
+    -- 8 numbers and 2 dashes make up the date format
+    local datePatternLen = 10
+    return string.len(name) ~= datePatternLen or
+           string.find(name, datePattern) == nil
 end
 
 function M.setup(opts)
@@ -23,6 +52,20 @@ function M.setup(opts)
     end
     if opts.notifications == false then
         M.notifications = opts.notifications
+    end
+    if opts.startdate then
+        M.startdate = opts.startdate
+    end
+    if opts.ignoreempty then
+        if not opts.startdate then
+            logErr('startdate must be set for this feature to work')
+            return
+        end
+        if isInvalidDateFormat(opts.startdate) then
+            logErr('start date format invalid, should be: YYYY-MM-DD')
+            return
+        end
+        M.ignoreempty = opts.ignoreempty
     end
 
     if M.legacy then
@@ -41,17 +84,13 @@ end
 function M.getNextDaily(direction)
     local fileType = vim.bo.filetype
     if fileType ~= 'vimwiki' and fileType ~= 'markdown' then
-        vim.notify('Invalid daily note: not a markdown file')
+        logErr('Invalid daily note: not a markdown file')
         return
     end
+    -- get just filename without extension (YYYY-MM-DD.md -> YYYY-MM-DD)
     local fileName = vim.fn.expand("%:t:r")
-    -- hyphen is a special character in lua patterns so needs to be escape with %
-    local datePattern = '%d%d%d%d%-%d%d%-%d%d'
-    -- 8 numbers and 2 dashes make up the date format
-    local datePatternLen = 10
-    if string.len(fileName) ~= datePatternLen or
-       string.find(fileName, datePattern) == nil then
-        vim.notify('Invalid daily note: date format invalid')
+    if isInvalidDateFormat(fileName) then
+        logErr('Invalid daily note: date format invalid')
         return
     end
     -- return if going forward and current daily note is todays note (latest note)
@@ -59,8 +98,12 @@ function M.getNextDaily(direction)
         vim.notify('Reached latest daily note')
         return
     end
+    -- return if going backward and current daily note is oldest note (if ignoreempty is set)
+    if direction < 0 and fileName == M.startdate then
+        vim.notify('Reached start of daily notes')
+    end
 
-    -- get next daily note after this day
+    -- get next daily note from this day (before or after depends on direction)
     local year = string.match(fileName, '%d%d%d%d')
     local month = string.match(fileName, '%d%d', 5)
     local day = string.match(fileName, '%d%d', 8)
@@ -68,6 +111,14 @@ function M.getNextDaily(direction)
     local nextDay = os.date('%Y-%m-%d', nextDayAsTime)
 
     local nextDayNote = nextDay .. '.md'
+    if M.ignoreempty and M.startdate and not fileExists(nextDayNote) then
+        if direction > 1 then
+            M.getNextDaily(direction+1)
+        else
+            M.getNextDaily(direction-1)
+        end
+        return
+    end
     vim.cmd(':e ' .. M.path .. nextDayNote)
 end
 
